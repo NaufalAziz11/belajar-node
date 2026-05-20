@@ -1,0 +1,26 @@
+CREATE TABLE IF NOT EXISTS sales (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    customer_name VARCHAR(255) NULL,
+    table_number VARCHAR(10) NULL,
+    total_price DECIMAL(15,2) NOT NULL,
+    payment_method ENUM('CASH', 'QRIS', 'CARD') NOT NULL DEFAULT 'CASH',
+    sale_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT fk_sales_users FOREIGN KEY (user_id) REFERENCES users(id)
+);
+
+CREATE TABLE IF NOT EXISTS sale_details (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    sale_id INT NOT NULL,
+    menu_id INT NOT NULL,
+    quantity INT NOT NULL,
+    subtotal DECIMAL(15,2) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP NULL DEFAULT NULL,
+    CONSTRAINT fk_sale_details_sales FOREIGN KEY (sale_id) REFERENCES sales(id),
+    CONSTRAINT fk_sale_details_menus FOREIGN KEY (menu_id) REFERENCES menus(id)
+);

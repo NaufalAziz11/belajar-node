@@ -3,9 +3,12 @@ const jwt = require('jsonwebtoken');
 const userModel = require('../models/userModel');
 
 const register = async (req, res) => {
-    const { username, email, password } = req.body;
+    const { username, email, password, role_id } = req.body;
     try {
-        // Check if user already exists
+        if (!role_id) {
+            return res.status(400).json({ message: 'Role ID is required' });
+        }
+
         const existingUsername = await userModel.findByUsername(username);
         const existingEmail = await userModel.findByEmail(email);
 
@@ -14,7 +17,7 @@ const register = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
-        await userModel.createUser(username, email, hashedPassword);
+        await userModel.createUser(username, email, hashedPassword, role_id);
 
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
@@ -35,16 +38,42 @@ const login = async (req, res) => {
             return res.status(401).json({ message: 'The password you entered is incorrect' });
         }
 
+        // Include role name and username in token payload
         const token = jwt.sign(
-            { id: user.id, email: user.email },
+            { id: user.id, email: user.email, role: user.role_name, username: user.username },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '24h' }
         );
 
-        res.json({ token });
+        res.json({
+            token,
+            user: {
+                username: user.username,
+                role: user.role_name || 'Super Admin' // Fallback
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
-module.exports = { register, login };
+const getUsers = async (req, res) => {
+    try {
+        const users = await userModel.getAllUsers();
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+const deleteUser = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await userModel.deleteUser(id);
+        res.json({ message: 'User deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
+module.exports = { register, login, getUsers, deleteUser };

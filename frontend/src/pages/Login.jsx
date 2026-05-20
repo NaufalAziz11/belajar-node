@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { loginUser } from '../services/authService';
 
 const Login = () => {
@@ -14,6 +14,7 @@ const Login = () => {
             console.log(email, password)
             const response = await loginUser(email, password);
             localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
             navigate('/dashboard');
         } catch (error) {
             setMessage(error.response?.data?.message || 'Login failed');
@@ -56,11 +57,6 @@ const Login = () => {
                         Login
                     </button>
                 </form>
-                <div className="mt-8 text-center">
-                    <Link to="/register" className="text-blue-600 hover:text-blue-800 font-medium">
-                        Don't have an account? Register
-                    </Link>
-                </div>
             </div>
         </div>
     );
